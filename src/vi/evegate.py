@@ -150,7 +150,8 @@ def getAvatarForPlayer(charname):
         if charId:
             imageUrl = BASE_URL + "/characters/{id}/portrait/"
             result = requests.get(imageUrl.format(id=charId)).content
-            avatar = json.loads(result)['px64x64']
+            avatarPath = json.loads(result)['px64x64']
+            avatar = requests.get(avatarPath).content
     except Exception as e:
         logging.error("Exception during getAvatarForPlayer: %s", e)
         avatar = None
