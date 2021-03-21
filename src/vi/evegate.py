@@ -33,18 +33,22 @@ ERROR = -1
 NOT_EXISTS = 0
 EXISTS = 1
 
+BASE_URL = "https://esi.evetech.net/latest"
+
+__package__ = "evegate"
 
 def charnameToId(name):
     """ Uses the EVE API to convert a charname to his ID
     """
     try:
-        url = "https://api.eveonline.com/eve/CharacterID.xml.aspx"
-        content = requests.get(url, params={'names': name}).text
-        soup = BeautifulSoup(content, 'html.parser')
-        rowSet = soup.select("rowset")[0]
-        for row in rowSet.select("row"):
+        url = BASE_URL + "/universe/ids/"
+        params = [name]
+        content = requests.post(url, json = params).text
+        obj = json.loads(content)
+        rowSet = obj["characters"]
+        for row in rowSet:
             if row["name"] == name:
-                return int(row["characterid"])
+                return int(row["id"])
 
     except Exception as e:
         logging.error("Exception turning charname to id via API: %s", e)
@@ -81,8 +85,8 @@ def namesToIds(names):
     try:
         # not in cache? asking the EVE API
         if len(apiCheckNames) > 0:
-            url = "https://api.eveonline.com/eve/CharacterID.xml.aspx"
-            content = requests.get(url, params={'names': ','.join(apiCheckNames)}).text
+            url = BASE_URL + "/universe/ids/"
+            content = requests.post(url, params={'names': ','.join(apiCheckNames)}).text
             soup = BeautifulSoup(content, 'html.parser')
             rowSet = soup.select("rowset")[0]
             for row in rowSet.select("row"):
@@ -118,9 +122,9 @@ def idsToNames(ids):
 
     try:
         # call the EVE-Api for those entries we didn't have in the cache
-        url = "https://api.eveonline.com/eve/CharacterName.xml.aspx"
+        url = BASE_URL + "/universe/names/"
         if len(apiCheckIds) > 0:
-            content = requests.get(url, params={'ids': ','.join(apiCheckIds)}).text
+            content = requests.post(url, params={'ids': ','.join(apiCheckIds)}).text
             soup = BeautifulSoup(content, 'html.parser')
             rowSet = soup.select("rowset")[0]
             for row in rowSet.select("row"):
@@ -144,8 +148,9 @@ def getAvatarForPlayer(charname):
     try:
         charId = charnameToId(charname)
         if charId:
-            imageUrl = "http://image.eveonline.com/Character/{id}_{size}.jpg"
-            avatar = requests.get(imageUrl.format(id=charId, size=32)).content
+            imageUrl = BASE_URL + "/characters/{id}/portrait/"
+            result = requests.get(imageUrl.format(id=charId)).content
+            avatar = json.loads(result)['px64x64']
     except Exception as e:
         logging.error("Exception during getAvatarForPlayer: %s", e)
         avatar = None
@@ -234,15 +239,15 @@ def getSystemStatistics():
     try:
         if jumpData is None:
             jumpData = {}
-            url = "https://api.eveonline.com/map/Jumps.xml.aspx"
-            content = requests.get(url).text
-            soup = BeautifulSoup(content, 'html.parser')
+            url = BASE_URL + "/universe/system_jumps/"
+            response = requests.get(url)
+            content = response.text
+            results = json.loads(content)
 
-            for result in soup.select("result"):
-                for row in result.select("row"):
-                    jumpData[int(row["solarsystemid"])] = int(row["shipjumps"])
+            for row in results:
+                jumpData[int(row["system_id"])] = int(row["ship_jumps"])
 
-            cacheUntil = datetime.datetime.strptime(soup.select("cacheduntil")[0].text, "%Y-%m-%d %H:%M:%S")
+            cacheUntil = extract_expiry_date(response)
             diff = cacheUntil - currentEveTime()
             cache.putIntoCache(cacheKey, json.dumps(jumpData), diff.seconds)
         else:
@@ -254,17 +259,17 @@ def getSystemStatistics():
 
         if systemData is None:
             systemData = {}
-            url = "https://api.eveonline.com/map/Kills.xml.aspx"
-            content = requests.get(url).text
-            soup = BeautifulSoup(content, 'html.parser')
+            url = BASE_URL + "/universe/system_kills"
+            response = requests.get(url)
+            content = response.text
+            results = json.loads(content)
 
-            for result in soup.select("result"):
-                for row in result.select("row"):
-                    systemData[int(row["solarsystemid"])] = {"ship": int(row["shipkills"]),
-                                                             "faction": int(row["factionkills"]),
-                                                             "pod": int(row["podkills"])}
+            for row in results:
+                systemData[int(row["system_id"])] = {"ship": int(row["ship_kills"]),
+                                                             "faction": int(row["npc_kills"]),
+                                                             "pod": int(row["pod_kills"])}
 
-            cacheUntil = datetime.datetime.strptime(soup.select("cacheduntil")[0].text, "%Y-%m-%d %H:%M:%S")
+            cacheUntil = extract_expiry_date(response)
             diff = cacheUntil - currentEveTime()
             cache.putIntoCache(cacheKey, json.dumps(systemData), diff.seconds)
         else:
@@ -286,6 +291,11 @@ def getSystemStatistics():
         data[i]["factionkills"] = v["faction"] if "faction" in v else 0
         data[i]["podkills"] = v["pod"] if "pod" in v else 0
     return data
+
+
+def extract_expiry_date(result):
+    cacheUntil = datetime.datetime.strptime(result.headers['Expires'], "%a, %d %b %Y %H:%M:%S %Z")
+    return cacheUntil
 
 
 def secondsTillDowntime():
