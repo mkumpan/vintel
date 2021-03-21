@@ -21,17 +21,17 @@
 # Little lib and tool to get the map and information from dotlan		  #
 ###########################################################################
 
+import logging
 import math
 import time
-import six
-import requests
-import logging
 
+import requests
+import six
 from bs4 import BeautifulSoup
+
+from vi import evegate
 from vi import states
 from vi.cache.cache import Cache
-
-from . import evegate
 
 JB_COLORS = ("800000", "808000", "BC8F8F", "ff00ff", "c83737", "FF6347", "917c6f", "ffcc00",
              "88aa00" "FFE4E1", "008080", "00BFFF", "4682B4", "00FF7F", "7FFF00", "ff6600",
@@ -48,7 +48,7 @@ class Map(object):
         The map including all information from dotlan
     """
 
-    DOTLAN_BASIC_URL = u"http://evemaps.dotlan.net/svg/{0}.svg"
+    DOTLAN_BASIC_URL = u"http://evemaps.dotlan.net/map/{0}.svg"
 
     @property
     def svg(self):
@@ -374,7 +374,7 @@ class System(object):
         if charname in self.__locatedCharacters:
             self.__locatedCharacters.remove(charname)
             if not self.__locatedCharacters:
-                for element in self.mapSoup.select("#" + idName):
+                for element in self.mapSoup.findAll(id=idName):
                     element.decompose()
 
     def addNeighbour(self, neighbourSystem):
