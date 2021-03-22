@@ -48,7 +48,7 @@ class Map(object):
         The map including all information from dotlan
     """
 
-    DOTLAN_BASIC_URL = u"http://evemaps.dotlan.net/map/{0}.svg"
+    DOTLAN_BASIC_URL = u"http://evemaps.dotlan.net/svg/{0}.svg"
 
     @property
     def svg(self):
@@ -75,6 +75,7 @@ class Map(object):
             svg = cache.getFromCache("map_" + self.region)
         else:
             svg = svgFile
+
         if not svg:
             try:
                 svg = self._getSvgFromDotlan(self.region)
@@ -90,6 +91,7 @@ class Map(object):
                         "without the map.\n\nRemember the site for possible " \
                         "updates: https://github.com/Xanthos-Eve/vintel".format(type(e), six.text_type(e))
                     raise DotlanException(t)
+
         # Create soup from the svg
         self.soup = BeautifulSoup(svg, 'html.parser')
         self.systems = self._extractSystemsFromSoup(self.soup)

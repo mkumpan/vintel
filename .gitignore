@@ -6,3 +6,7 @@
 src/vi/cache.sqlite3
 
 venv
+
+dist
+vintel.spec
+build
