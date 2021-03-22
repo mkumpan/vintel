@@ -57,8 +57,8 @@ def charnameToId(name):
 
         content = requests.get("{}{}".format(baseUrl, requests.utils.quote(name))).text
         soup = BeautifulSoup(content, 'html.parser')
-        img = soup.select("#imgActiveCharacter")
-        imageUrl = soup.select("#imgActiveCharacter")[0]["src"]
+        img = soup.findAll(id="imgActiveCharacter")
+        imageUrl = soup.findAll(id="imgActiveCharacter")[0]["src"]
         return imageUrl[imageUrl.rfind("/") + 1:imageUrl.rfind("_")]
 
 

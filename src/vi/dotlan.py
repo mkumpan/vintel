@@ -33,7 +33,7 @@ from vi import evegate
 from vi import states
 from vi.cache.cache import Cache
 
-JB_COLORS = ("800000", "808000", "BC8F8F", "ff00ff", "c83737", "FF6347", "917c6f", "ffcc00",
+JB_COLORS = ("800000", "BC8F8F", "ff00ff", "c83737", "FF6347", "917c6f", "ffcc00",
              "88aa00" "FFE4E1", "008080", "00BFFF", "4682B4", "00FF7F", "7FFF00", "ff6600",
              "CD5C5C", "FFD700", "66CDAA", "AFEEEE", "5F9EA0", "FFDEAD", "696969", "2F4F4F")
 
@@ -102,7 +102,7 @@ class Map(object):
         self._connectNeighbours()
         self._jumpMapsVisible = False
         self._statisticsVisible = False
-        self.marker = self.soup.select("#select_marker")[0]
+        self.marker = self.soup.findAll(id="select_marker")[0]
 
     def _extractSystemsFromSoup(self, soup):
         systems = {}
@@ -164,7 +164,7 @@ class Map(object):
                                      refy="5", orient="auto", style="stroke:#{0};fill:#{0}".format(jbColor))
             endmarker.append(endpath)
             svg.insert(0, endmarker)
-        jumps = soup.select("#jumps")[0]
+        jumps = soup.findAll(id="jumps")[0]
 
         # Set up the tags for system statistics
         for systemId, system in self.systemsById.items():
@@ -184,7 +184,7 @@ class Map(object):
             It takes a look at all the jumps on the map and gets the system under
             which the line ends
         """
-        for jump in self.soup.select("#jumps")[0].select(".j"):
+        for jump in self.soup.findAll(id="jumps")[0].select(".j"):
             if "jumpbridge" in jump["class"]: continue
             parts = jump["id"].split("-")
             if parts[0] == "j":
@@ -217,7 +217,7 @@ class Map(object):
         soup = self.soup
         for bridge in soup.select(".jumpbridge"):
             bridge.decompose()
-        jumps = soup.select("#jumps")[0]
+        jumps = soup.findAll(id="jumps")[0]
         colorCount = 0
 
         for bridge in jumpbridgesData:
@@ -325,7 +325,7 @@ class System(object):
 
     def setJumpbridgeColor(self, color):
         idName = self.name + u"_jb_marker"
-        for element in self.mapSoup.select(u"#" + idName):
+        for element in self.mapSoup.findAll(id=idName):
             element.decompose()
         coords = self.mapCoordinates
         offsetPoint = self.getTransformOffsetPoint()
@@ -334,11 +334,11 @@ class System(object):
         style = "fill:{0};stroke:{0};stroke-width:2;fill-opacity:0.4"
         tag = self.mapSoup.new_tag("rect", x=x, y=y, width=coords["width"] + 1.5, height=coords["height"], id=idName, style=style.format(color), visibility="hidden")
         tag["class"] = ["jumpbridge", ]
-        jumps = self.mapSoup.select("#jumps")[0]
+        jumps = self.mapSoup.findAll(id="jumps")[0]
         jumps.insert(0, tag)
 
     def mark(self):
-        marker = self.mapSoup.select("#select_marker")[0]
+        marker = self.mapSoup.findAll(id="select_marker")[0]
         offsetPoint = self.getTransformOffsetPoint()
         x = self.mapCoordinates["center_x"] + offsetPoint[0]
         y = self.mapCoordinates["center_y"] + offsetPoint[1]
@@ -356,7 +356,7 @@ class System(object):
             newTag = self.mapSoup.new_tag("ellipse", cx=coords["center_x"] - 2.5, cy=coords["center_y"], id=idName,
                     rx=coords["width"] / 2 + 4, ry=coords["height"] / 2 + 4, style="fill:#8b008d",
                     transform=self.transform)
-            jumps = self.mapSoup.select("#jumps")[0]
+            jumps = self.mapSoup.findAll(id="jumps")[0]
             jumps.insert(0, newTag)
 
     def setBackgroundColor(self, color):

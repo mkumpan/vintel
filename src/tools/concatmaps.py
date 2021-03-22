@@ -46,13 +46,13 @@ def concat(firstFile, secondFile):
         for symbol in defElement.select("symbol"):
             symbols.append(symbol)
 
-    for jumpgroup in secondSvg.select("#jumps"):
+    for jumpgroup in secondSvg.findAll(id="jumps"):
         for jump in jumpgroup.select("line"):
             jump["x1"] = float(jump["x1"]) + 3000
             jump["x2"] = float(jump["x2"]) + 3000
             jumps.append(jump)
 
-    for sysgroup in secondSvg.select("#sysuse"):
+    for sysgroup in secondSvg.findAll(id="sysuse"):
         for sysuse in sysgroup.select("use"):
             sysuse["x"] = float(sysuse["x"]) + 3000
             systemUses.append(sysuse)
@@ -61,11 +61,11 @@ def concat(firstFile, secondFile):
     for symbol in symbols:
         defElement.append(symbol)
 
-    jumpsElement = firstSvg.select("#jumps")[0]
+    jumpsElement = firstSvg.findAll(id="jumps")[0]
     for jump in jumps:
         jumpsElement.append(jump)
 
-    systemUseElement = firstSvg.select("#sysuse")[0]
+    systemUseElement = firstSvg.findAll(id="sysuse")[0]
     for systemUse in systemUses:
         systemUseElement.append(systemUse)
 

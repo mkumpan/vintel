@@ -32,7 +32,7 @@ from PyQt4 import QtGui, uic, QtCore
 from PyQt4.QtCore import QPoint, SIGNAL
 from PyQt4.QtGui import QImage, QPixmap, QMessageBox
 from PyQt4.QtWebKit import QWebPage
-from vi import amazon_s3, evegate
+from vi import evegate
 from vi import dotlan, filewatcher
 from vi import states
 from vi.cache.cache import Cache
@@ -202,9 +202,9 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.filewatcherThread, SIGNAL("file_change"), self.logFileChanged)
         self.filewatcherThread.start()
 
-        self.versionCheckThread = amazon_s3.NotifyNewVersionThread()
-        self.versionCheckThread.connect(self.versionCheckThread, SIGNAL("newer_version"), self.notifyNewerVersion)
-        self.versionCheckThread.start()
+        # self.versionCheckThread = amazon_s3.NotifyNewVersionThread()
+        # self.versionCheckThread.connect(self.versionCheckThread, SIGNAL("newer_version"), self.notifyNewerVersion)
+        # self.versionCheckThread.start()
 
         self.statisticsThread = MapStatisticsThread()
         self.connect(self.statisticsThread, SIGNAL("statistic_data_update"), self.updateStatisticsOnMap)
@@ -246,6 +246,14 @@ class MainWindow(QtGui.QMainWindow):
         logging.critical("Load jump bridges")
         self.setJumpbridges(self.cache.getFromCache("jumpbridge_url"))
         self.systems = self.dotlan.systems
+
+        if self.knownPlayerNames:
+            for char in self.knownPlayerNames:
+                loc = self.cache.getFromCache("player_" + char + "_loc")
+                if loc:
+                    logging.warn("Found known character [{0}], located in [{1}]".format(char, sys))
+                    self.setLocation(char, loc)
+
         logging.critical("Creating chat parser")
         self.chatparser = ChatParser(self.pathToLogs, self.roomnames, self.systems)
 
@@ -536,6 +544,7 @@ class MainWindow(QtGui.QMainWindow):
         if not newSystem == "?" and newSystem in self.systems:
             self.systems[newSystem].addLocatedCharacter(char)
             self.setMapContent(self.dotlan.svg)
+            self.cache.putIntoCache("player_" + char + "_loc", newSystem)
 
 
     def setMapContent(self, content):
@@ -595,17 +604,23 @@ class MainWindow(QtGui.QMainWindow):
 
     def setJumpbridges(self, url):
         if url is None:
-            url = ""
+            QMessageBox.warning(None, "Loading jumpbridges failed!", "Invalid URL. Got: {0}".format(six.text_type(url)), "OK")
+            return
+
         try:
             data = []
-            if url != "":
-                resp = requests.get(url)
-                for line in resp.iter_lines(decode_unicode=True):
-                    parts = line.strip().split()
-                    if len(parts) == 3:
-                        data.append(parts)
-            else:
-                data = amazon_s3.getJumpbridgeData(self.dotlan.region.lower())
+            resp = requests.get(url)
+            for line in resp.iter_lines(decode_unicode=True):
+                parts = line.strip().split()
+                if len(parts) == 5:
+                    data.append([
+                        parts[0],
+                        parts[2],
+                        parts[3]
+                    ])
+                if len(parts) == 3:
+                    data.append(parts)
+
             self.dotlan.setJumpbridges(data)
             self.cache.putIntoCache("jumpbridge_url", url, 60 * 60 * 24 * 365 * 8)
         except Exception as e:
