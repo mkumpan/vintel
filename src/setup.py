@@ -6,7 +6,10 @@ from vi.version import VERSION
 build_exe_options = {
         "packages": ['vi', 'sys', 'soupsieve', 'pkgutil', 'certifi', 'distutils'],
         "excludes": ['collections.abc'],
-        "include_files": [("vi\ui", "vi\ui")],
+        "include_files": [
+                ("vi\ui", "vi\ui"),
+                ("docs", "docs"),
+        ],
         "zip_includes": [
                 ("cacert.pem",               "certifi\cacert.pem")
         ],

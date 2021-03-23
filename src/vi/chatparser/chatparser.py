@@ -18,6 +18,7 @@
 ###########################################################################
 
 import datetime
+import logging
 import os
 import time
 
@@ -68,6 +69,8 @@ class ChatParser(object):
         content = ""
         filename = os.path.basename(path)
         roomname = filename[:-30]
+
+        logging.critical("Found log file for room [{0}], path: [{1}].".format(roomname, filename))
         try:
             with open(path, "r", encoding='utf-16-le') as f:
                 content = f.read()
