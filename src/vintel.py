@@ -34,6 +34,9 @@ from vi.resources import resourcePath
 from vi.cache.cache import Cache
 from PyQt4.QtGui import QApplication, QMessageBox
 
+# does not freeze without
+from PyQt4 import QtNetwork, QtXml, Qsci
+import soupsieve
 
 def exceptHook(exceptionType, exceptionValue, tracebackObject):
     """
