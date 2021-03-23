@@ -251,7 +251,7 @@ class MainWindow(QtGui.QMainWindow):
             for char in self.knownPlayerNames:
                 loc = self.cache.getFromCache("player_" + char + "_loc")
                 if loc:
-                    logging.warn("Found known character [{0}], located in [{1}]".format(char, sys))
+                    logging.warn("Found known character [{0}], located in [{1}]".format(char, loc))
                     self.setLocation(char, loc)
 
         logging.critical("Creating chat parser")
