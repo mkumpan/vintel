@@ -20,6 +20,7 @@
 import datetime
 import logging
 import os
+import re
 import time
 
 import six
@@ -38,6 +39,7 @@ from .parser_functions import parseUrls, parseShips, parseSystems
 # Names the local chatlogs could start with (depends on l10n of the client)
 LOCAL_NAMES = ("Local", "Lokal", six.text_type("\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439"))
 
+ROOM_RX = re.compile("(.*)_\d{8}_\d{6}_\d+.txt") # (room name)_date{8}_time{6}_whatever{8-10?}.txt
 
 class ChatParser(object):
     """ ChatParser will analyze every new line that was found inside the Chatlogs.
@@ -68,7 +70,7 @@ class ChatParser(object):
         lines = None
         content = ""
         filename = os.path.basename(path)
-        roomname = filename[:-30]
+        roomname = self.get_room(filename)
 
         logging.critical("Found log file for room [{0}], path: [{1}].".format(roomname, filename))
         try:
@@ -98,6 +100,10 @@ class ChatParser(object):
                         break
         self.fileData[path]["lines"] = len(lines)
         return lines
+
+    def get_room(self, filename):
+        roomname = ROOM_RX.findall(filename).pop()
+        return roomname
 
     def _lineToMessage(self, line, roomname):
         # finding the timestamp
@@ -207,7 +213,7 @@ class ChatParser(object):
         # EvE names the file like room_20140913_200737.txt, so we don't need
         # the last 20 chars
         filename = os.path.basename(path)
-        roomname = filename[:-30]
+        roomname = self.get_room(filename)
         if path not in self.fileData:
             # seems eve created a new file. New Files have 12 lines header
             self.fileData[path] = {"lines": 13}
