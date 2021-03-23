@@ -1,5 +1,5 @@
 import logging
-from distutils.version import StrictVersion
+from packaging import version as vsn
 
 import requests
 from PyQt4.QtCore import QThread, SIGNAL
@@ -36,7 +36,7 @@ class NotifyNewVersionThread(QThread):
             try:
                 # Is there a newer version available?
                 newestVersion = getNewestVersion()
-                if newestVersion and StrictVersion(newestVersion) > StrictVersion(version.VERSION):
+                if newestVersion and vsn.parse(newestVersion) > vsn.parse(version.VERSION):
                     self.emit(SIGNAL("newer_version"), newestVersion)
                     self.alerted = True
             except Exception as e:

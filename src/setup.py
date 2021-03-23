@@ -4,9 +4,12 @@ from vi.version import VERSION
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
-        "packages": ['vi', 'sys', 'soupsieve', 'pkgutil', 'certifi'],
+        "packages": ['vi', 'sys', 'soupsieve', 'pkgutil', 'certifi', 'distutils'],
         "excludes": ['collections.abc'],
-        "zip_includes": [("cacert.pem",               "certifi\cacert.pem")],
+        "include_files": [("vi\ui", "vi\ui")],
+        "zip_includes": [
+                ("cacert.pem",               "certifi\cacert.pem")
+        ],
         "icon": 'icon.ico'
 }
 
