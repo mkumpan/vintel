@@ -1019,6 +1019,9 @@ class ChatEntryWidget(QtGui.QWidget):
 
 class JumpbridgeChooser(QtGui.QDialog):
     def __init__(self, parent, url):
+        if not url:
+            url = ""
+
         QtGui.QDialog.__init__(self, parent)
         uic.loadUi(resourcePath("vi/ui/JumpbridgeChooser.ui"), self)
         self.connect(self.saveButton, SIGNAL("clicked()"), self.savePath)
