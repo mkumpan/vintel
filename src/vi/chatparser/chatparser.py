@@ -72,7 +72,7 @@ class ChatParser(object):
         filename = os.path.basename(path)
         roomname = self.get_room(filename)
 
-        logging.critical("Found log file for room [{0}], path: [{1}].".format(roomname, filename))
+        logging.critical(u"Found log file for room [{0}], path: [{1}].".format(roomname, filename))
         try:
             with open(path, "r", encoding='utf-16-le') as f:
                 content = f.read()
