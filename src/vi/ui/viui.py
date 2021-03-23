@@ -18,31 +18,31 @@
 ###########################################################################
 
 import datetime
+import logging
 import sys
 import time
-import six
-import requests
 import webbrowser
 
-import vi.version
-
-import logging
-from PyQt4.QtGui import *
+import requests
+import six
 from PyQt4 import QtGui, uic, QtCore
 from PyQt4.QtCore import QPoint, SIGNAL
-from PyQt4.QtGui import QImage, QPixmap, QMessageBox
+from PyQt4.QtGui import *
+from PyQt4.QtGui import QAction
+from PyQt4.QtGui import QImage, QPixmap
+from PyQt4.QtGui import QMessageBox
 from PyQt4.QtWebKit import QWebPage
-from vi import evegate
+
+import vi.version
 from vi import dotlan, filewatcher
+from vi import evegate, versionchecker
 from vi import states
 from vi.cache.cache import Cache
+from vi.chatparser import ChatParser
 from vi.resources import resourcePath
 from vi.soundmanager import SoundManager
 from vi.threads import AvatarFindThread, KOSCheckerThread, MapStatisticsThread
 from vi.ui.systemtray import TrayContextMenu
-from vi.chatparser import ChatParser
-from PyQt4.QtGui import QAction
-from PyQt4.QtGui import QMessageBox
 
 # Timer intervals
 MESSAGE_EXPIRY_SECS = 20 * 60
@@ -202,9 +202,9 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.filewatcherThread, SIGNAL("file_change"), self.logFileChanged)
         self.filewatcherThread.start()
 
-        # self.versionCheckThread = amazon_s3.NotifyNewVersionThread()
-        # self.versionCheckThread.connect(self.versionCheckThread, SIGNAL("newer_version"), self.notifyNewerVersion)
-        # self.versionCheckThread.start()
+        self.versionCheckThread = versionchecker.NotifyNewVersionThread()
+        self.versionCheckThread.connect(self.versionCheckThread, SIGNAL("newer_version"), self.notifyNewerVersion)
+        self.versionCheckThread.start()
 
         self.statisticsThread = MapStatisticsThread()
         self.connect(self.statisticsThread, SIGNAL("statistic_data_update"), self.updateStatisticsOnMap)
@@ -372,7 +372,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def notifyNewerVersion(self, newestVersion):
-        self.trayIcon.showMessage("Newer Version", ("An update is available for Vintel.\nhttps://github.com/Xanthos-Eve/vintel"), 1)
+        self.trayIcon.showMessage("Newer Version", ("An update is available for Vintel.\nhttps://github.com/mkumpan/vintel/releases"), 1)
 
     def changeChatVisibility(self, newValue=None):
         if newValue is None:
