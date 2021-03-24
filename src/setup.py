@@ -1,6 +1,9 @@
 import sys
+import time
+
 from cx_Freeze import setup, Executable
-from vi.version import VERSION
+from vi.version import VERSION, SNAPSHOT
+from easy7zip import easy7zip
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
@@ -29,3 +32,13 @@ setup(  name = "vintel",
                 "build_exe": build_exe_options
         },
         executables = [Executable("vintel.py", base=base)])
+
+
+print("Building archive")
+start = time.time()
+
+zipper = easy7zip()
+zipper.AddToArch("dist/vintel-" + VERSION + ("-SNAPSHOT" if SNAPSHOT else  "") + ".7z", "build/exe.win-amd64-2.7")
+
+end = time.time()
+print("Time taken: {0} seconds".format(end - start))
