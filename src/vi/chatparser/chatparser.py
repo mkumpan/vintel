@@ -108,7 +108,7 @@ class ChatParser(object):
             return roomname
         except Exception:
             logging.error("Failed to parse room from file: " + filename)
-            QMessageBox.warning(None, "Failed to parse room from file: " + filename, "OK")
+            QMessageBox.warning(None, "Cannot parse chat log file", "Failed to parse room from file: " + filename, "OK")
             return "<ERROR>"
 
     def _lineToMessage(self, line, roomname):
