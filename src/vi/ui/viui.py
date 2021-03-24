@@ -1,3 +1,4 @@
+# coding=utf-8
 ###########################################################################
 #  Vintel - Visual Intel Chat Analyzer									  #
 #  Copyright (C) 2014-15 Sebastian Meyer (sparrow.242.de+eve@gmail.com )  #
@@ -800,7 +801,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.trayIcon.setIcon(self.taskbarIconWorking)
                     self.kosRequestThread.addRequest(parts, "xxx", False)
             # Otherwise consider it a 'normal' chat message
-            elif message.user not in ("EVE-System", "EVE System") and message.status != states.IGNORE:
+            elif message.user not in ("EVE-System", "EVE System", u"Система EVE") and message.status != states.IGNORE:
                 self.addMessageToIntelChat(message)
                 # For each system that was mentioned in the message, check for alarm distance to the current system
                 # and alarm if within alarm distance.
