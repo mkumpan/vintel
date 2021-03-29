@@ -56,6 +56,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def __init__(self, pathToLogs, trayIcon):
+        self.initializing = True
 
         QtGui.QMainWindow.__init__(self)
         self.cache = Cache()
@@ -136,6 +137,8 @@ class MainWindow(QtGui.QMainWindow):
         self.recallCachedSettings()
         self.setupThreads()
         self.setupMap(True)
+
+        self.initializing = False
 
 
     def paintEvent(self, event):
@@ -837,6 +840,10 @@ class MainWindow(QtGui.QMainWindow):
                                 if len(chars) > 0 and message.user not in chars:
                                     self.trayIcon.showNotification(message, system.name, ", ".join(chars), distance)
                 self.setMapContent(self.dotlan.svg)
+
+    def show(self):
+        if not self.initializing:
+            super(MainWindow, self).show()
 
 
 class ChatroomsChooser(QtGui.QDialog):
