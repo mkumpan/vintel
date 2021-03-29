@@ -353,6 +353,7 @@ class MainWindow(QtGui.QMainWindow):
                     (None, "setSoundVolume", SoundManager().soundVolume),
                     (None, "changeFrameless", self.framelessWindowAction.isChecked()),
                     (None, "changeUseSpokenNotifications", self.useSpokenNotificationsAction.isChecked()),
+                    (None, "changeDarkTheme", self.darkThemeAction.isChecked()),
                     (None, "changeKosCheckClipboard", self.kosClipboardActiveAction.isChecked()),
                     (None, "changeAutoScanIntel", self.scanIntelForKosRequestsEnabled))
         self.cache.putIntoCache("settings", str(settings), 60 * 60 * 24 * 30)
