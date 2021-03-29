@@ -397,6 +397,7 @@
     </widget>
     <addaction name="alwaysOnTopAction"/>
     <addaction name="framelessWindowAction"/>
+    <addaction name="darkThemeAction"/>
     <addaction name="menuTransparency"/>
    </widget>
    <addaction name="menu"/>
@@ -513,6 +514,17 @@
    </property>
    <property name="toolTip">
     <string>Frameless Main Window</string>
+   </property>
+  </action>
+  <action name="darkThemeAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Dark Theme</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Dark Theme</string>
    </property>
   </action>
   <action name="quitAction">

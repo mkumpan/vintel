@@ -23,6 +23,7 @@ import logging
 import sys
 import time
 import webbrowser
+import qdarkstyle
 
 import requests
 import six
@@ -54,13 +55,11 @@ CLIPBOARD_CHECK_INTERVAL_MSECS = 4 * 1000
 class MainWindow(QtGui.QMainWindow):
 
 
-    def __init__(self, pathToLogs, trayIcon, backGroundColor):
+    def __init__(self, pathToLogs, trayIcon):
 
         QtGui.QMainWindow.__init__(self)
         self.cache = Cache()
 
-        if backGroundColor:
-            self.setStyleSheet("QWidget { background-color: %s; }" % backGroundColor)
         uic.loadUi(resourcePath('vi/ui/MainWindow.ui'), self)
         self.setWindowTitle("Vintel " + vi.version.VERSION + "{dev}".format(dev="-SNAPSHOT" if vi.version.SNAPSHOT else ""))
         self.taskbarIconQuiescent = QtGui.QIcon(resourcePath("vi/ui/res/logo_small.png"))
@@ -182,6 +181,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.useSpokenNotificationsAction, SIGNAL("triggered()"), self.changeUseSpokenNotifications)
         self.connect(self.trayIcon, SIGNAL("alarm_distance"), self.changeAlarmDistance)
         self.connect(self.framelessWindowAction, SIGNAL("triggered()"), self.changeFrameless)
+        self.connect(self.darkThemeAction, SIGNAL("triggered()"), self.changeDarkTheme)
         self.connect(self.trayIcon, SIGNAL("change_frameless"), self.changeFrameless)
         self.connect(self.frameButton, SIGNAL("clicked()"), self.changeFrameless)
         self.connect(self.quitAction, SIGNAL("triggered()"), self.close)
@@ -339,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
                     ("splitter", "restoreGeometry", str(self.splitter.saveGeometry())),
                     ("splitter", "restoreState", str(self.splitter.saveState())),
                     ("mapView", "setZoomFactor", self.mapView.zoomFactor()),
-                    (None, "updateChatFontSize", ChatEntryWidget.TEXT_SIZE),
+                    (None, "changeChatFontSize", ChatEntryWidget.TEXT_SIZE),
                     (None, "changeOpacity", self.opacityGroup.checkedAction().opacity),
                     (None, "changeAlwaysOnTop", self.alwaysOnTopAction.isChecked()),
                     (None, "changeShowAvatars", self.showChatAvatarsAction.isChecked()),
@@ -441,6 +441,18 @@ class MainWindow(QtGui.QMainWindow):
             self.setWindowFlags(self.windowFlags() & (~QtCore.Qt.WindowStaysOnTopHint))
         self.show()
 
+    def changeDarkTheme(self, newValue=None):
+        if newValue is None:
+            newValue = self.darkThemeAction.isChecked()
+
+        self.hide()
+        if newValue:
+            self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+        else:
+            self.setStyleSheet("")
+
+        self.show()
+
     def changeFrameless(self, newValue=None):
         if newValue is None:
             newValue = not self.frameButton.isVisible()
@@ -466,25 +478,25 @@ class MainWindow(QtGui.QMainWindow):
         for entry in self.chatEntries:
             entry.avatarLabel.setVisible(newValue)
 
-    def updateChatFontSize(self):
-        if ChatEntryWidget.TEXT_SIZE:
+    def changeChatFontSize(self, newSize):
+        if newSize:
 
             for row in range(self.chatListWidget.count()):
                 chatListWidgetItem = self.chatListWidget.item(row)
                 chatEntryWidget = self.chatListWidget.itemWidget(chatListWidgetItem)
 
-                chatEntryWidget.changeFontSize(ChatEntryWidget.TEXT_SIZE)
+                chatEntryWidget.changeFontSize(newSize)
                 chatListWidgetItem.setSizeHint(chatEntryWidget.sizeHint())
 
 
     def chatSmaller(self):
         ChatEntryWidget.TEXT_SIZE -= 1
-        self.updateChatFontSize()
+        self.changeChatFontSize(ChatEntryWidget.TEXT_SIZE)
 
 
     def chatLarger(self):
         ChatEntryWidget.TEXT_SIZE += 1
-        self.updateChatFontSize()
+        self.changeChatFontSize(ChatEntryWidget.TEXT_SIZE)
 
 
     def changeAlarmDistance(self, distance):

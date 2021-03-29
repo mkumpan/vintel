@@ -22,6 +22,7 @@ import sys
 import os
 import logging
 import traceback
+import qdarkstyle
 
 from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
@@ -99,9 +100,9 @@ class Application(QApplication):
         logLevel = vintelCache.getFromCache("logging_level")
         if not logLevel:
             logLevel = logging.WARN
-        backGroundColor = vintelCache.getFromCache("background_color")
-        if backGroundColor:
-            self.setStyleSheet("QWidget { background-color: %s; }" % backGroundColor)
+        dark_mode = vintelCache.getFromCache("dark_mode")
+        if dark_mode:
+            self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
 
         splash.show()
         self.processEvents()
@@ -129,7 +130,7 @@ class Application(QApplication):
 
         trayIcon = systemtray.TrayIcon(self)
         trayIcon.show()
-        self.mainWindow = viui.MainWindow(chatLogDirectory, trayIcon, backGroundColor)
+        self.mainWindow = viui.MainWindow(chatLogDirectory, trayIcon)
         self.mainWindow.show()
         self.mainWindow.raise_()
         splash.finish(self.mainWindow)
