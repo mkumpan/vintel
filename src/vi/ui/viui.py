@@ -129,6 +129,7 @@ class MainWindow(QtGui.QMainWindow):
             font.setPointSize(8)
             self.statisticsButton.setFont(font)
             self.jumpbridgesButton.setFont(font)
+            ChatEntryWidget.TEXT_SIZE = 8
         elif sys.platform.startswith("linux"):
             pass
 
@@ -338,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
                     ("splitter", "restoreGeometry", str(self.splitter.saveGeometry())),
                     ("splitter", "restoreState", str(self.splitter.saveState())),
                     ("mapView", "setZoomFactor", self.mapView.zoomFactor()),
-                    (None, "changeChatFontSize", ChatEntryWidget.TEXT_SIZE),
+                    (None, "updateChatFontSize", ChatEntryWidget.TEXT_SIZE),
                     (None, "changeOpacity", self.opacityGroup.checkedAction().opacity),
                     (None, "changeAlwaysOnTop", self.alwaysOnTopAction.isChecked()),
                     (None, "changeShowAvatars", self.showChatAvatarsAction.isChecked()),
@@ -465,21 +466,25 @@ class MainWindow(QtGui.QMainWindow):
         for entry in self.chatEntries:
             entry.avatarLabel.setVisible(newValue)
 
-    def changeChatFontSize(self, newSize):
-        if newSize:
-            for entry in self.chatEntries:
-                entry.changeFontSize(newSize)
-            ChatEntryWidget.TEXT_SIZE = newSize
+    def updateChatFontSize(self):
+        if ChatEntryWidget.TEXT_SIZE:
+
+            for row in range(self.chatListWidget.count()):
+                chatListWidgetItem = self.chatListWidget.item(row)
+                chatEntryWidget = self.chatListWidget.itemWidget(chatListWidgetItem)
+
+                chatEntryWidget.changeFontSize(ChatEntryWidget.TEXT_SIZE)
+                chatListWidgetItem.setSizeHint(chatEntryWidget.sizeHint())
 
 
     def chatSmaller(self):
-        newSize = ChatEntryWidget.TEXT_SIZE - 1
-        self.changeChatFontSize(newSize)
+        ChatEntryWidget.TEXT_SIZE -= 1
+        self.updateChatFontSize()
 
 
     def chatLarger(self):
-        newSize = ChatEntryWidget.TEXT_SIZE + 1
-        self.changeChatFontSize(newSize)
+        ChatEntryWidget.TEXT_SIZE += 1
+        self.updateChatFontSize()
 
 
     def changeAlarmDistance(self, distance):
@@ -661,13 +666,15 @@ class MainWindow(QtGui.QMainWindow):
             scrollToBottom = True
         chatEntryWidget = ChatEntryWidget(message)
         listWidgetItem = QtGui.QListWidgetItem(self.chatListWidget)
-        listWidgetItem.setSizeHint(chatEntryWidget.sizeHint())
         self.chatListWidget.addItem(listWidgetItem)
         self.chatListWidget.setItemWidget(listWidgetItem, chatEntryWidget)
         self.avatarFindThread.addChatEntry(chatEntryWidget)
         self.chatEntries.append(chatEntryWidget)
         self.connect(chatEntryWidget, SIGNAL("mark_system"), self.markSystemOnMap)
         self.emit(SIGNAL("chat_message_added"), chatEntryWidget)
+
+        listWidgetItem.setSizeHint(chatEntryWidget.sizeHint())
+
         self.pruneMessages()
         if scrollToBottom:
             self.chatListWidget.scrollToBottom()
@@ -677,12 +684,12 @@ class MainWindow(QtGui.QMainWindow):
         try:
             now = time.mktime(evegate.currentEveTime().timetuple())
             for row in range(self.chatListWidget.count()):
-                chatListWidgetItem = self.chatListWidget.item(0)
+                chatListWidgetItem = self.chatListWidget.item(row)
                 chatEntryWidget = self.chatListWidget.itemWidget(chatListWidgetItem)
                 message = chatEntryWidget.message
                 if now - time.mktime(message.timestamp.timetuple()) > MESSAGE_EXPIRY_SECS:
                     self.chatEntries.remove(chatEntryWidget)
-                    self.chatListWidget.takeItem(0)
+                    self.chatListWidget.takeItem(row)
 
                     for widgetInMessage in message.widgets:
                         widgetInMessage.removeItemWidget(chatListWidgetItem)
@@ -976,10 +983,8 @@ class ChatEntryWidget(QtGui.QWidget):
         self.avatarLabel.setPixmap(self.questionMarkPixmap)
         self.message = message
         self.updateText()
+        self.changeFontSize(ChatEntryWidget.TEXT_SIZE)
         self.connect(self.textLabel, SIGNAL("linkActivated(QString)"), self.linkClicked)
-        if sys.platform.startswith("win32") or sys.platform.startswith("cygwin"):
-            ChatEntryWidget.TEXT_SIZE = 8
-        self.changeFontSize(self.TEXT_SIZE)
         if not ChatEntryWidget.SHOW_AVATAR:
             self.avatarLabel.setVisible(False)
 
